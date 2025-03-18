@@ -50,7 +50,7 @@ export const connectEvent = {
     },
     requestId: "*************", // Masked
     domainName: "your-api-id.execute-api.us-east-1.amazonaws.com",
-    connectionId: "abcd123456789",
+    connectionId: null,
     apiId: "your-api-id",
   },
   isBase64Encoded: false,
@@ -87,7 +87,7 @@ export const disconnectEvent = {
     },
     requestId: "*************", // Masked
     domainName: "your-api-id.execute-api.us-east-1.amazonaws.com",
-    connectionId: "abcd123456789",
+    connectionId: null,
     apiId: "your-api-id",
   },
   isBase64Encoded: false,
@@ -111,7 +111,7 @@ export const defaultEvent = {
     },
     requestId: "********",
     domainName: "********.execute-api.us-east-1.amazonaws.com",
-    connectionId: "abcd123456789",
+    connectionId: null,
     apiId: "********",
   },
   body: undefined,

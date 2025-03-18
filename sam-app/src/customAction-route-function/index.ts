@@ -24,20 +24,25 @@ export const lambdaHandler = async (
     connectionId: event.requestContext.connectionId,
   };
 
-  if (process.env.PRODUCTION && !client) {
+  // Ensure that the client is initialized in production and connectionId is available if in production
+  if (
+    (process.env.PRODUCTION && !client) ||
+    (process.env.PRODUCTION && parsedEvent.connectionId === null)
+  ) {
     throw new Error("API Gateway Management API client is not initialized.");
   }
 
   const Data = JSON.stringify({
-    message: "customAction route has been triggered by API Gateway.",
+    route: "customAction",
+    recievedMessage: parsedEvent.body?.message || "No message received",
     connectionId: parsedEvent.connectionId,
   });
 
-  // A client is only available in production environment
+  // The ApiGateway client is only available in the production environment
   if (client) {
     try {
       const postToConnectionCommand = new PostToConnectionCommand({
-        ConnectionId: parsedEvent.connectionId,
+        ConnectionId: parsedEvent.connectionId!,
         Data,
       });
       await client.send(postToConnectionCommand);

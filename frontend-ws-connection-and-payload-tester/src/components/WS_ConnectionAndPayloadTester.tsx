@@ -29,7 +29,7 @@ interface Props {
   initialConnectionURL: string;
 }
 
-const WS2 = ({ initialConnectionURL }: Props) => {
+const WS_ConnectionAndPayloadTester = ({ initialConnectionURL }: Props) => {
   const [initialComponentLoad, setInitialComponentLoad] = useState(true);
   const [wsUrl, setWsUrl] = useState(initialConnectionURL);
   const wsUrlInputRef = useRef<HTMLInputElement>(null);
@@ -131,7 +131,7 @@ const WS2 = ({ initialConnectionURL }: Props) => {
       setMessages((prev) => [...prev, { connectionEvent: true }]);
       setPayload(`{
   "action": "customAction",
-  "message": "your message here"
+  "message": "Hello from the client!"
 }`);
     };
 
@@ -292,4 +292,4 @@ const WS2 = ({ initialConnectionURL }: Props) => {
   );
 };
 
-export default WS2;
+export default WS_ConnectionAndPayloadTester;

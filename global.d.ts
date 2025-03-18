@@ -38,7 +38,7 @@ interface WebSocketEvent {
   queryStringParameters?: Record<string, string>; // Single-value query params
   multiValueQueryStringParameters?: Record<string, string[]>; // Multi-value query params
   requestContext: {
-    routeKey: "$connect" | "$disconnect" | "$default" | "customAction"; // Includes custom routeKeys
+    routeKey: string;
     eventType: "CONNECT" | "DISCONNECT" | "MESSAGE"; // Type of event, all custom routes will be "MESSAGE"
     extendedRequestId?: string;
     requestTime?: string;
@@ -52,7 +52,7 @@ interface WebSocketEvent {
     };
     requestId?: string;
     domainName?: string;
-    connectionId: string;
+    connectionId: string | null;
     apiId?: string;
 
     // Fields specific to disconnect events
