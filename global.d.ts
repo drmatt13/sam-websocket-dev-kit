@@ -35,6 +35,8 @@ interface WebSocketEvent {
     "x-api-key"?: string[];
     "x-restapi"?: string[];
   };
+  queryStringParameters?: Record<string, string>; // Single-value query params
+  multiValueQueryStringParameters?: Record<string, string[]>; // Multi-value query params
   requestContext: {
     routeKey: "$connect" | "$disconnect" | "$default" | "customAction"; // Includes custom routeKeys
     eventType: "CONNECT" | "DISCONNECT" | "MESSAGE"; // Type of event, all custom routes will be "MESSAGE"

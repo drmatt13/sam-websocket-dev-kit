@@ -6,6 +6,8 @@ export const lambdaHandler = async (
   const parsedEvent = {
     routeKey: event.requestContext.routeKey,
     connectionId: event.requestContext.connectionId,
+    domainName: event.requestContext.domainName,
+    queryParams: event.queryStringParameters,
   };
 
   // Here you can handle any initial connection logic if needed
@@ -15,7 +17,13 @@ export const lambdaHandler = async (
   // Keep in mind YOU CANNOT send a message back to the client at this point, as the connection is still being established.
   //
 
-  // Simply return success to accept the connection
+  // Uncomment this to deny the connection
+  // return {
+  //   statusCode: 403,
+  //   body: "Connection denied",
+  // };
+
+  // Return a response to indicate that the connection was accepted
   return {
     statusCode: 200,
   };

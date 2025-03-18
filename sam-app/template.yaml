@@ -36,7 +36,7 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          PRODUCTION: "true"
+          PRODUCTION: 'true'
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -56,16 +56,16 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          PRODUCTION: "true"
-          API_ID: !Ref WebSocketAPI 
+          PRODUCTION: 'true'
+          API_ID: !Ref WebSocketAPI
           STAGE: !Ref WebSocketStage
       Policies:
         - Statement:
             - Effect: Allow
               Action:
-                - 'execute-api:ManageConnections'
+                - execute-api:ManageConnections
               Resource:
-                - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketAPI}/${WebSocketStage}/*'
+                - !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketAPI}/${WebSocketStage}/*
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -85,7 +85,7 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          PRODUCTION: "true"
+          PRODUCTION: 'true'
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -105,16 +105,16 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          PRODUCTION: "true"
-          API_ID: !Ref WebSocketAPI 
-          STAGE: !Ref WebSocketStage  
+          PRODUCTION: 'true'
+          API_ID: !Ref WebSocketAPI
+          STAGE: !Ref WebSocketStage
       Policies:
         - Statement:
             - Effect: Allow
               Action:
-                - 'execute-api:ManageConnections'
+                - execute-api:ManageConnections
               Resource:
-                - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketAPI}/${WebSocketStage}/*'
+                - !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketAPI}/${WebSocketStage}/*
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -221,5 +221,5 @@ Resources:
 
 Outputs:
   WebSocketAPIEndpoint:
-    Description: "The API Gateway endpoint for the WebSocket API"
+    Description: The API Gateway endpoint for the WebSocket API
     Value: !Sub wss://${WebSocketAPI}.execute-api.${AWS::Region}.amazonaws.com/prod

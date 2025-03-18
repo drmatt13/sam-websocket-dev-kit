@@ -32,6 +32,7 @@ interface Props {
 const WS2 = ({ initialConnectionURL }: Props) => {
   const [initialComponentLoad, setInitialComponentLoad] = useState(true);
   const [wsUrl, setWsUrl] = useState(initialConnectionURL);
+  const wsUrlInputRef = useRef<HTMLInputElement>(null);
   const [URLisValid, setURLisValid] = useState(false);
   const [payload, setPayload] = useState("");
   const [validPayload, setValidPayload] = useState(false);
@@ -81,6 +82,12 @@ const WS2 = ({ initialConnectionURL }: Props) => {
 
   useEffect(() => {
     console.log(messages);
+  }, [messages]);
+
+  useEffect(() => {
+    if (messagesRef.current) {
+      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const handleIconClick = useCallback(() => {
@@ -138,6 +145,21 @@ const WS2 = ({ initialConnectionURL }: Props) => {
     };
   }, [wsUrl, disconnectWebSocket, loadingConnection]);
 
+  useEffect(() => {
+    // when enter is pressed in wsUrl input, connect to WebSocket
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        if (URLisValid) {
+          connectWebSocket();
+        }
+      }
+    };
+    wsUrlInputRef.current?.addEventListener("keydown", handleKeyDown);
+    return () => {
+      wsUrlInputRef.current?.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [URLisValid, connectWebSocket]);
+
   // on initial page load, connect to WebSocket if initialConnectionURL is provided
   useEffect(() => {
     if (initialComponentLoad && initialConnectionURL) {
@@ -155,6 +177,7 @@ const WS2 = ({ initialConnectionURL }: Props) => {
             <input
               type="text"
               value={wsUrl}
+              ref={wsUrlInputRef}
               onChange={(e) => setWsUrl(e.target.value)}
               placeholder="ws://"
               className={`${

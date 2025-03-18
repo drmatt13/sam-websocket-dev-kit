@@ -11,31 +11,114 @@ import { lambdaHandler as $defaultRouteKeyLambdaHandler } from "../sam-app/src/d
 //  Define new WebSocket route handlers following this structure
 // =======================================
 
+import { createServer } from "http";
+import { WebSocketServer } from "ws";
+import { parse } from "url";
+import env from "dotenv";
+
+import invokeLambdaFunction from "./lib/invokeLambdaFunction";
+
 import {
   connectEvent,
   defaultEvent,
   disconnectEvent,
 } from "./events/websocketEvents";
 
-import invokeLambdaFunction from "./lib/invokeLambdaFunction";
-
-import { Server } from "ws";
+env.config({
+  path: "./.env.development",
+});
 
 const PORT = Number(process.env.PORT) || 8080;
+const server = createServer(); // Create an HTTP server for handling WebSocket upgrades
 
-// Always use `wss` for the WebSocket server variable name (wss:// required in production for HTTPS).
-const wss = new Server({ port: PORT });
+// =======================================
+//  🔄 WebSocket Server in "noServer" Mode
+//  This prevents unauthorized connections before they are fully established
+// =======================================
+const wss = new WebSocketServer({ noServer: true });
 
-// Reentrant Execution – Each call to on("message") executes separately without interfering with others.
-wss.on("connection", async (ws) => {
-  // Event-Driven Concurrency – Each connection operates independently via event listeners.
+// =======================================
+//  🛑 WebSocket Upgrade Interception
+//  Handles incoming WebSocket upgrade requests BEFORE connection establishment
+// =======================================
+server.on("upgrade", async (request, socket, head) => {
+  try {
+    // =======================================
+    //  🔗 WebSocket Route: "$connect"
+    //  Invoked before allowing the connection
+    // =======================================
+    if (connectEvent.headers) {
+      connectEvent.headers.Origin = request.headers.origin;
+    }
+    if (connectEvent.requestContext) {
+      connectEvent.requestContext.domainName = request.headers.host;
+    }
+    // Parse query params
+    const parsedUrl = parse(request.url || "", true); // Parse URL with query
+    const queryParams = parsedUrl.query as Record<string, string | string[]>; // Extract query params
 
-  // =======================================
-  //  🔗 WebSocket Route: "$connect"
-  //  Triggered when a client connects
-  // =======================================
-  await invokeLambdaFunction(ws, $connectRouteKeyLambdaHandler, connectEvent);
+    // Append single-value query parameters
+    connectEvent.queryStringParameters = {
+      ...connectEvent.queryStringParameters, // Preserve existing values
+      ...Object.fromEntries(
+        Object.entries(queryParams).map(([key, value]) => [
+          key,
+          Array.isArray(value) ? value[0] : value, // Convert arrays to single values
+        ])
+      ),
+    };
 
+    // Append multi-value query parameters
+    connectEvent.multiValueQueryStringParameters = {
+      ...connectEvent.multiValueQueryStringParameters, // Preserve existing values
+      ...Object.fromEntries(
+        Object.entries(queryParams).map(([key, value]) => [
+          key,
+          Array.isArray(value) ? value : [value], // Ensure all values are arrays
+        ])
+      ),
+    };
+
+    // =======================================
+    //  🔗 WebSocket Route: "$connect"
+    //  Triggered when a client connects
+    // =======================================
+    const connectResponse = await $connectRouteKeyLambdaHandler(connectEvent);
+
+    // =======================================
+    //  🛑 Deny Connection if Unauthorized
+    // =======================================
+    if (
+      (connectResponse as any).statusCode &&
+      [403, 401, 500, 502, 503, 504].includes(
+        (connectResponse as any).statusCode
+      )
+    ) {
+      console.log("❌ Connection rejected by $connect Lambda.");
+      socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n"); // Send 401 response
+      socket.destroy();
+      return;
+    }
+
+    // =======================================
+    //  🔄 Upgrade WebSocket Connection
+    //  Only proceed if Lambda allows the connection
+    // =======================================
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit("connection", ws, request);
+    });
+  } catch (error) {
+    console.error("🚨 Error during $connect Lambda execution:", error);
+    socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
+    socket.destroy();
+  }
+});
+
+// =======================================
+//  🎯 WebSocket Connection Event
+//  This executes only for authorized connections
+// =======================================
+wss.on("connection", async (ws, req) => {
   ws.on("message", async (message) => {
     const body = JSON.parse(message.toString());
     const messageEvent: WebSocketEvent = {
@@ -97,4 +180,9 @@ wss.on("connection", async (ws) => {
   });
 });
 
-console.log(`WebSocket server is running at ws://localhost:${PORT}`);
+// =======================================
+//  🚀 Start WebSocket Server
+// =======================================
+server.listen(PORT, () => {
+  console.log(`WebSocket server listening on ws://localhost:${PORT}`);
+});

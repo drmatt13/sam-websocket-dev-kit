@@ -25,10 +25,3 @@ export default function Home() {
     </div>
   );
 }
-
-{
-  /* <WS /> */
-}
-{
-  /* <WS /> */
-}
